@@ -3,20 +3,19 @@
 #include <thread>
 #include <sys/stat.h>
 
-
 using namespace cv;
 
-#define TERM_WIDTH 140
 #define TERM_HEIGTH 51
+#define TERM_WIDTH 140
 #define MSWAITVIDEO 1.5
 #define MSWAITCAP 5
 
 /*
-Sets the web came to the closest native resolution
+[Sets the web cam to the closest native resolution]
 
-cap is video captur
-width is the width of the captured image
-height is the height of the captured image
+-cap is video capture
+-width is the width of the captured image
+-height is the height of the captured image
 */
 void setResolutionCam(VideoCapture* cap, const uint width, const uint height)
 {
@@ -25,12 +24,12 @@ void setResolutionCam(VideoCapture* cap, const uint width, const uint height)
 }
 
 /*
-Setup and resizes the image.
+[Setup and resizes the image]
 
-input is the income image you wish to turn in to black and white and resize
-output contains the resized and desaturated images
-width is the width that output image should become
-height is the height that the output image should become
+-input is the income image you wish to turn in to black and white and resize
+-output contains the resized and desaturated images
+-width is the width that output image should become
+-height is the height that the output image should become
 */
 void imageDesatAndResize(Mat* input, Mat* output, const uint width, const uint height)
 {
@@ -42,15 +41,15 @@ void imageDesatAndResize(Mat* input, Mat* output, const uint width, const uint h
 }
 
 /*
-maps the value x, in a range between out_min and out_max in relation to in_min and in_max
+[Maps the value x, in a range between out_min and out_max in relation to in_min and in_max]
 
-x is the number to remap
-in_min is the minimal number that x can be
-in_max is the maximum number that x can be
-out_min is the minimum number that the result can become
-out_max is the maximum number that the result can become
-+
-returns a long that is mapped between out_min and out_max
+-x is the number to remap
+-in_min is the minimal number that x can be
+-in_max is the maximum number that x can be
+-out_min is the minimum number that the result can become
+-out_max is the maximum number that the result can become
+
+(returns a long that is mapped between out_min and out_max)
 */
 long map(int x, int in_min, int in_max, int out_min, int out_max)
 {
@@ -58,11 +57,13 @@ long map(int x, int in_min, int in_max, int out_min, int out_max)
 }
 
 /*
-turnImageToAscii will look at each pixel value and find based on it's value the appropriate char from chars array.
-These chars in the chars array, simulate the luminance.
-Each pixel maps to a single character. So when you have 80x24 char screen the input images should be 80x24 pixels.
+[Will look at each pixel value and find based on it's value the appropriate char from chars array]
 
-input is the rescaled, grey scale image to be mapped in ascii chars
+These chars in the chars array, simulate the luminance.
+Each pixel maps to a single character. 
+So when you have 640x480 char screen the input images should be 640x480 pixels.
+
+-input is the rescaled, gray scale image to be mapped in ascii chars
 */
 void turnImageToAscii(Mat* input)
 {
@@ -82,9 +83,6 @@ void turnImageToAscii(Mat* input)
     }
 }
 
-/*
-just a convenience wrapper for the thread
-*/
 void t_resize(Mat* image, const int width, const int height)
 {
     cv::resize(*image, *image, Size(width, height), INTER_LINEAR);
@@ -170,10 +168,10 @@ int main(int argc, char** argv)
         }
         break;
     case 2:
-        // smallest native resolution this web cam has.
         setResolutionCam(&cap1, 640, 480);
 
         // Audio implementation try
+        // Issue: not synchronized with frames
         /*system("start Resources/audio.mp3");*/
 
         std::cout << "Set your terminal to " << TERM_WIDTH << "x" << TERM_HEIGTH << std::endl;
@@ -185,13 +183,9 @@ int main(int argc, char** argv)
             if (image.empty())
                 return 0;
 
-            // turns the image into a 140, 51 pixel black and white image, that will map to 140x51 chars
             imageDesatAndResize(&image, &small, TERM_WIDTH, TERM_HEIGTH);
 
-            // resize the life feed to 320x240 to display, and capture keyboard events
             std::thread thread1(t_resize, &image, 320, 240);
-
-            // takes the small black and white image and maps each pixel to a character and prints it to the terminal
             std::thread thread2(turnImageToAscii, &small);
 
             thread1.join();
